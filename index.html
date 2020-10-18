@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Tetris</title>
+    <script type="module" src="script.js"></script>
+
+    <style>
+        html {
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+        }
+
+        #settingsPanel {
+            max-height: 50%;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: medium;
+            position: absolute;
+            background-color: white;
+            color: black;
+            padding: 10px;
+        }
+
+        .controller {
+            margin: 10px;
+            table-layout: fixed;
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+            width: 150px;
+            height: 100px;
+        }
+
+        .control {
+            font-size: 100%;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            color: white;
+            background: black;
+            border-color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .transparent {
+            position: absolute;
+            outline: none;
+            color: transparent;
+            background-color: transparent;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <table id="settingsPanel" class="hidden">
+        <tr>
+            <th><label>Shadow's Color</label></th>
+            <th><input type="color" id="shadow_color" style="left: 100%;" onchange="applySetting(this)"></th>
+        </tr>
+        
+        <tr>
+            <th><label>Display Shadow</label></th>
+            <th><input type="checkbox" id="show_tetromino_shadow" onchange="applySetting(this)"></th>
+        </tr>
+
+        <tr>
+            <th><label>World Border Color</label></th>
+            <th><input type="color" id="world_border_color" style="right: 0px;" onchange="applySetting(this)"></th>
+        </tr>
+
+        <tr>
+            <th><label>Shape Border Color</label></th>
+            <th><input type="color" id="shape_border_color" onchange="applySetting(this)"></th>
+        </tr>
+
+        <tr>
+            <th><label>Text Color</label></th>
+            <th><input type="color" id="text_color" onchange="applySetting(this)"></th>
+        </tr>
+
+        <tr>
+            <th><label>Background Color</label></th>
+            <th><input type="color" id="background_color" onchange="applySetting(this)"></th>
+        </tr>
+
+        <tr>
+            <th><label>Display Next</label></th>
+            <th><input type="number" id="display_next" onchange="applySetting(this)"></th>
+        </tr>
+
+        <tr>
+            <th><button id="reset_settings" onclick="resetSettings()">Reset Settings</button></th>
+            <th>Press H to hide</th>
+        </tr>
+    </table>
+    <button class="transparent" onclick="document.getElementById('settingsPanel').classList.toggle('hidden')"></button>
+
+    <table id="controller" class="controller">
+        <tr>
+            <th><button class="control"></button></th>
+            <th><button class="control" onclick="GAME.currentTetromino.nextShape()"> ↻ </button></th>
+            <th><button class="control" onclick="GAME.currentTetromino.moveY(GAME.currentTetromino.castDown())"> ⇊ </button></th>
+        </tr>
+        <tr>
+            <th><button class="control" onclick="GAME.currentTetromino.moveX(-1)"> ← </button></th>
+            <th><button class="control" onclick="GAME.currentTetromino.moveY(1)"> ↓ </button></th>
+            <th><button class="control" onclick="GAME.currentTetromino.moveX(1)"> → </button></th>
+        </tr>
+    </table>
+</body>
+</html>
