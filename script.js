@@ -24,7 +24,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { wCanvas, formatString, Font } from "../../wcanvas.js";
+import { wCanvas, formatString, Font } from "./wCanvas/wcanvas.js";
 
 function defaultSettings() {
     /* SETTINGS START */
