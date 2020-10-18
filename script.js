@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2020 [hds536jhmk](https://github.com/hds536jhmk/wCanvas/tree/master/examples/wCanvas_Tetris)
+Copyright (c) 2020 [hds536jhmk](https://github.com/hds536jhmk/Tetris_wCanvas)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
