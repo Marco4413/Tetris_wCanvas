@@ -1,7 +1,7 @@
 
 ## What's special about this game?
 
-It was made by using my own library to make canvas interactions easier! You can check it out [@wCanvas's GitHub Repo](https://hds536jhmk.github.io/wcanvas/).
+It was made by using my own library to make canvas interactions easier! You can check it out [@wCanvas's GitHub Repo](https://hds536jhmk.github.io/wCanvas/).
 
 ## I've got issues on mobile, what can I do?
 
