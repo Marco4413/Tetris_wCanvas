@@ -13,6 +13,7 @@ This game isn't really meant to work well on mobile, it was designed to be playe
  - **A** or **LEFT ARROW** : Moves the tetromino to the left;
  - **D** or **RIGHT ARROW** : Moves the tetromino to the right;
  - **SPACE BAR** : Drops down the tetromino instantly;
+ - **SHIFT** : Holds the currently falling tetromino;
  - **H** : Toggles Settings Menu;
  - **C** : Toggles Controller (Shown by default on mobile).
 

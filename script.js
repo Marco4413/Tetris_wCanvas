@@ -31,6 +31,8 @@ function defaultSettings() {
     return {
         shadow_color: "#d3d3d3",
         show_tetromino_shadow: true,
+
+        locked_tetromino_color: "#d3d3d3",
     
         world_border_color: "#ffffff",
         shape_border_color: "#000000",
@@ -50,6 +52,7 @@ const KEY_BINDINGS = {
     "moveDown"       : [ "s", "ArrowDown"  ],
     "moveRight"      : [ "d", "ArrowRight" ],
     "dropDown"       : [ " "               ],
+    "holdTetromino"  : [      "Shift"      ],
     "hideSettings"   : [ "h"               ],
     "hideController" : [ "c"               ]
 };
@@ -237,6 +240,7 @@ let getRandomShape;
  * @param {Number} x - The x pos
  * @param {Number} y - The y pos
  * @param {Shape} shape - The shape to draw
+ * @param {String} [color] - The color with which the Tetromino should be drawn
  */
 function drawShape(canvas, x, y, shape, color) {
     if (shape !== undefined) {
@@ -413,6 +417,18 @@ class Game {
     currentTetromino;
 
     /**
+     * Currently held tetromino
+     * @type {Tetromino}
+     */
+    heldTetromino;
+
+    /**
+     * Whether or not the held piece can be swapped
+     * @type {Boolean}
+     */
+    canSwapHeld;
+
+    /**
      * The world of the game
      * @type {Array<Array<Number>>}
      */
@@ -483,6 +499,7 @@ class Game {
      * @returns {Tetromino} The new current tetromino
      */
     nextTetromino() {
+        this.canSwapHeld = true;
         this.currentTetromino = this.tetrominoesPool.shift();
         return this.currentTetromino;
     }
@@ -507,6 +524,16 @@ class Game {
     }
 
     /**
+     * Calculates the pos at which a Tetromino should spawn
+     * @param {Shape} - The shape of the tetromino
+     * @returns {Point} The pos at which a Tetromino should spawn
+     */
+    getTetrominoSpawnPos(shape) {
+        const shapeWidth = shape[0].length;
+        return { "x": Math.floor((this.width - shapeWidth) / 2), "y": 0 };
+    }
+
+    /**
      * Adds a new tetromino to the pool by using a shape
      * @param {Shape} shape - The shape of the new tetromino
      * @returns {Tetromino} The newly added tetromino
@@ -516,8 +543,7 @@ class Game {
             return;
         }
 
-        const shapeWidth = shape[0].length;
-        const newTetromino = new Tetromino(shape, { "x": Math.floor((this.width - shapeWidth) / 2), "y": 0 }, this);
+        const newTetromino = new Tetromino(shape, this.getTetrominoSpawnPos(shape), this);
         this.tetrominoesPool.push(newTetromino);
 
         return newTetromino;
@@ -548,6 +574,31 @@ class Game {
                 }
             }
         }
+
+        return true;
+    }
+
+    /**
+     * Tries to hold the current Tetromino
+     * @returns {Boolean} Whether or not a Tetromino was held
+     */
+    holdTetromino() {
+        if (!this.canSwapHeld) {
+            return false;
+        }
+
+        const previousHeld = this.heldTetromino;
+        this.heldTetromino = this.currentTetromino;
+
+        if (previousHeld === undefined) {
+            this.nextTetromino();
+            this.addTetrominoToPool(getRandomShape());
+        } else {
+            previousHeld.pos = this.getTetrominoSpawnPos(previousHeld.getCurrentShape());
+            this.currentTetromino = previousHeld;
+        }
+
+        this.canSwapHeld = false;
 
         return true;
     }
@@ -593,6 +644,8 @@ class Game {
             if (!this.tetrominoFits(newTetromino)) {
                 this.highscore = Math.max(this.highscore, this.score);
                 this.clearWorld();
+                this.heldTetromino = undefined;
+                this.canSwapHeld = true;
                 this.score = 0;
                 return true;
             }
@@ -608,6 +661,7 @@ class Game {
     drawAll(canvas) {
         this.drawWorld(canvas);
         this.drawCurrentTetromino(canvas);
+        this.drawHeldTetromino(canvas);
         this.drawPool(canvas);
         this.drawScores(canvas);
     }
@@ -643,7 +697,7 @@ class Game {
 
     /**
      * Draws the game's current tetromino
-     * @param {wCanvas} canvas  - The canvas to draw the game's current tetromino on
+     * @param {wCanvas} canvas - The canvas to draw the game's current tetromino on
      */
     drawCurrentTetromino(canvas) {
         canvas.strokeCSS(settings.shape_border_color);
@@ -652,6 +706,24 @@ class Game {
             this.currentTetromino.drawShadow(canvas);
         }
         this.currentTetromino.draw(canvas);
+    }
+
+    /**
+     * Draws the game's held tetromino
+     * @param {wCanvas} canvas - The canvas to draw the game's held tetromino on
+     */
+    drawHeldTetromino(canvas) {
+        if (this.heldTetromino === undefined) {
+            return;
+        }
+
+        canvas.strokeCSS(settings.shape_border_color);
+        const shape = this.heldTetromino.getCurrentShape();
+        drawShape(
+            canvas,
+            this.pos.x - shape[0].length * CELL_SIZE - PADDING, this.pos.y,
+            shape, this.canSwapHeld ? undefined : settings.locked_tetromino_color
+        );
     }
 
     /**
@@ -855,6 +927,8 @@ window.addEventListener("keydown", (e) => {
         tetromino.moveX(1);
     } else if (KEY_BINDINGS.dropDown.includes(e.key)) {
         tetromino.moveY(tetromino.castDown());
+    } else if (KEY_BINDINGS.holdTetromino.includes(e.key)) {
+        GAME.holdTetromino();
     } else if (KEY_BINDINGS.hideSettings.includes(e.key)) {
         const settingsPanel = document.getElementById("settingsPanel");
         if (settingsPanel !== null) {
