@@ -54,7 +54,8 @@ const KEY_BINDINGS = {
     "dropDown"       : [ " "               ],
     "holdTetromino"  : [      "Shift"      ],
     "hideSettings"   : [ "h"               ],
-    "hideController" : [ "c"               ]
+    "hideController" : [ "c"               ],
+    "gamePause"      : [ "p"               ]
 };
 
 const FONT = new Font("Arial", 12);
@@ -335,6 +336,8 @@ class Tetromino {
      * @returns {Boolean} If it was able to change shape
      */
     previousShape() {
+        if (this.game.paused) { return false; }
+
         const oldIndex = this.shapeIndex;
         if (--this.shapeIndex < 0) {
             this.shapeIndex = this.shapes.length - 1;
@@ -353,6 +356,8 @@ class Tetromino {
      * @returns {Boolean} If it was able to change shape
      */
     nextShape() {
+        if (this.game.paused) { return false; }
+
         const oldIndex = this.shapeIndex;
         if (++this.shapeIndex >= this.shapes.length) {
             this.shapeIndex = 0;
@@ -380,6 +385,8 @@ class Tetromino {
      * @returns {Boolean} Whether or not it could move into the specified pos
      */
     moveX(ammount) {
+        if (this.game.paused) { return false; }
+
         if (this.game.tetrominoFits(this, this.pos.x + ammount)) {
             this.pos.x += ammount;
             return true;
@@ -394,6 +401,8 @@ class Tetromino {
      * @returns {Boolean} Whether or not it could move into the specified pos
      */
     moveY(ammount) {
+        if (this.game.paused) { return false; }
+
         if (this.game.tetrominoFits(this, undefined, this.pos.y + ammount)) {
             this.pos.y += ammount;
             return true;
@@ -449,6 +458,8 @@ class Game {
 
         this.tetrominoesPool = [];
 
+        this.paused = false;
+
         this.clearWorld();
     }
 
@@ -499,6 +510,8 @@ class Game {
      * @returns {Tetromino} The new current tetromino
      */
     nextTetromino() {
+        if (this.paused) { return; }
+        
         this.canSwapHeld = true;
         this.currentTetromino = this.tetrominoesPool.shift();
         return this.currentTetromino;
@@ -509,6 +522,8 @@ class Game {
      * @param {Tetromino} tetromino - The tetromino to solidify
      */
     solidifyTetromino(tetromino) {
+        if (this.paused) { return; }
+
         const shape = tetromino.getCurrentShape();
         for (let relY = 0; relY < shape.length; relY++) {
             const row = shape[relY];
@@ -583,7 +598,7 @@ class Game {
      * @returns {Boolean} Whether or not a Tetromino was held
      */
     holdTetromino() {
-        if (!this.canSwapHeld) {
+        if (this.paused || !this.canSwapHeld) {
             return false;
         }
 
@@ -608,7 +623,7 @@ class Game {
      * @returns {Boolean} Whether or not the game was restarted
      */
     update() {
-        if (this.currentTetromino === undefined) {
+        if (this.paused || this.currentTetromino === undefined) {
             return false;
         }
 
@@ -908,7 +923,19 @@ function update() {
  */
 function draw(canvas, deltaTime) {
     canvas.backgroundCSS(settings.background_color);
-    GAME.drawAll(canvas);
+
+    if (GAME.paused) {
+        GAME.drawScores(canvas);
+
+        const centerX = GAME.pos.x + GAME.width * CELL_SIZE / 2;
+        const centerY = GAME.pos.y + GAME.height * CELL_SIZE / 2;
+
+        const textConfig = { "horizontalAlignment": "center", "verticalAlignment": "center" };
+        canvas.text("PAUSED", centerX, centerY, textConfig);
+        canvas.text(`[ ${KEY_BINDINGS.gamePause.join(", ").toUpperCase()} ]`, centerX, centerY + FONT.fontSize, textConfig);
+    } else {
+        GAME.drawAll(canvas);
+    }
 }
 
 window.addEventListener("keydown", (e) => {
@@ -939,6 +966,8 @@ window.addEventListener("keydown", (e) => {
         if (controller !== null) {
             controller.classList.toggle("hidden");
         }
+    } else if (KEY_BINDINGS.gamePause.includes(e.key)) {
+        GAME.paused = !GAME.paused;
     }
 });
 

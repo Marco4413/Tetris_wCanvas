@@ -15,6 +15,7 @@ This game isn't really meant to work well on mobile, it was designed to be playe
  - **SPACE BAR** : Drops down the tetromino instantly;
  - **SHIFT** : Holds the currently falling tetromino;
  - **H** : Toggles Settings Menu;
- - **C** : Toggles Controller (Shown by default on mobile).
+ - **C** : Toggles Controller (Shown by default on mobile);
+ - **P** : Pauses the game.
 
 **Enjoy This Game!**
