@@ -47,15 +47,16 @@ function defaultSettings() {
 let settings = defaultSettings();
 
 const KEY_BINDINGS = {
-    "rotate"         : [ "w", "ArrowUp"    ],
-    "moveLeft"       : [ "a", "ArrowLeft"  ],
-    "moveDown"       : [ "s", "ArrowDown"  ],
-    "moveRight"      : [ "d", "ArrowRight" ],
-    "dropDown"       : [ " "               ],
-    "holdTetromino"  : [      "Shift"      ],
-    "hideSettings"   : [ "h"               ],
-    "hideController" : [ "c"               ],
-    "gamePause"      : [ "p"               ]
+    "rotate"            : [ "w", "ArrowUp"    ],
+    "move_left"         : [ "a", "ArrowLeft"  ],
+    "move_down"         : [ "s", "ArrowDown"  ],
+    "move_right"        : [ "d", "ArrowRight" ],
+    "drop_down"         : [ " "               ],
+    "hold_tetromino"    : [      "Shift"      ],
+    "toggle_settings"   : [ "h"               ],
+    "toggle_infos"      : [ "i"               ],
+    "toggle_controller" : [ "c"               ],
+    "game_pause"        : [ "p"               ]
 };
 
 const FONT = new Font("Arial", 12);
@@ -86,6 +87,23 @@ const SCORES = [
 
 const EMPTY_CELL = " ";
 const SHAPES = 7;
+
+const KEY_TRANSLATIONS = {
+    " ": "SpaceBar"
+}
+
+/**
+ * Prettifies a key binding (Used to show key bindings to the user in a readable/pretty way)
+ * @param {String} action - The action from KEY_BINDINGS to prettify
+ * @returns {String} The prettified action
+ */
+function prettyKeyBinding(action) {
+    /** @type {String[]} */
+    const keyBindings = KEY_BINDINGS[action].slice().map(s => KEY_TRANSLATIONS[s] === undefined ? (s.length > 1 ? s : s.toUpperCase()) : KEY_TRANSLATIONS[s]);
+    const prettyAction = action.split("_").map(s => s.substr(0, 1).toUpperCase() + s.substr(1)).join(" ");
+
+    return `${prettyAction} : ${keyBindings.join(", ").replace(/^(.*),(.*)$/g, "$1 or $2")}`;
+}
 
 /**
  * Returns a new shape from the specified ID
@@ -932,7 +950,7 @@ function draw(canvas, deltaTime) {
 
         const textConfig = { "horizontalAlignment": "center", "verticalAlignment": "center" };
         canvas.text("PAUSED", centerX, centerY, textConfig);
-        canvas.text(`[ ${KEY_BINDINGS.gamePause.join(", ").toUpperCase()} ]`, centerX, centerY + FONT.fontSize, textConfig);
+        canvas.text(`[ ${KEY_BINDINGS.game_pause.join(", ").toUpperCase()} ]`, centerX, centerY + FONT.fontSize, textConfig);
     } else {
         GAME.drawAll(canvas);
     }
@@ -946,27 +964,32 @@ window.addEventListener("keydown", (e) => {
 
     if (KEY_BINDINGS.rotate.includes(e.key)) {
         tetromino.nextShape();
-    } else if (KEY_BINDINGS.moveLeft.includes(e.key)) {
+    } else if (KEY_BINDINGS.move_left.includes(e.key)) {
         tetromino.moveX(-1);
-    } else if (KEY_BINDINGS.moveDown.includes(e.key)) {
+    } else if (KEY_BINDINGS.move_down.includes(e.key)) {
         tetromino.moveY(1);
-    } else if (KEY_BINDINGS.moveRight.includes(e.key)) {
+    } else if (KEY_BINDINGS.move_right.includes(e.key)) {
         tetromino.moveX(1);
-    } else if (KEY_BINDINGS.dropDown.includes(e.key)) {
+    } else if (KEY_BINDINGS.drop_down.includes(e.key)) {
         tetromino.moveY(tetromino.castDown());
-    } else if (KEY_BINDINGS.holdTetromino.includes(e.key)) {
+    } else if (KEY_BINDINGS.hold_tetromino.includes(e.key)) {
         GAME.holdTetromino();
-    } else if (KEY_BINDINGS.hideSettings.includes(e.key)) {
+    } else if (KEY_BINDINGS.toggle_settings.includes(e.key)) {
         const settingsPanel = document.getElementById("settingsPanel");
         if (settingsPanel !== null) {
             settingsPanel.classList.toggle("hidden");
         }
-    } else if (KEY_BINDINGS.hideController.includes(e.key)) {
+    } else if (KEY_BINDINGS.toggle_infos.includes(e.key)) {
+        const infoPanel = document.getElementById("infoPanel");
+        if (infoPanel !== null) {
+            infoPanel.classList.toggle("hidden");
+        }
+    } else if (KEY_BINDINGS.toggle_controller.includes(e.key)) {
         const controller = document.getElementById("controller");
         if (controller !== null) {
             controller.classList.toggle("hidden");
         }
-    } else if (KEY_BINDINGS.gamePause.includes(e.key)) {
+    } else if (KEY_BINDINGS.game_pause.includes(e.key)) {
         GAME.paused = !GAME.paused;
     }
 });
@@ -979,6 +1002,16 @@ window.addEventListener("load", () => {
         controller.classList.remove("hidden");
     } else {
         controller.classList.add("hidden");
+
+        const infoPanel = document.getElementById("infoPanel");
+
+        Object.keys(KEY_BINDINGS).forEach(
+            key => {
+                const p = document.createElement("p");
+                p.innerText = prettyKeyBinding(key);
+                infoPanel.appendChild(p);
+            }
+        );
     }
 
     syncSettings();
