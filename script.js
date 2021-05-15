@@ -24,7 +24,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { wCanvas, formatString, Font } from "./wCanvas/wcanvas.js";
+import { wCanvas, formatString, Font, Color } from "./wCanvas/wcanvas.js";
 
 function defaultSettings() {
     /* SETTINGS START */
@@ -271,7 +271,7 @@ function drawShape(canvas, x, y, shape, color) {
                     continue;
                 }
 
-                canvas.fillCSS(color === undefined ? cellColor : color);
+                canvas.fill(new Color(color === undefined ? cellColor : color));
                 canvas.rect(
                     x + relX * CELL_SIZE, y + relY * CELL_SIZE,
                     CELL_SIZE, CELL_SIZE
@@ -705,12 +705,12 @@ class Game {
      */
     drawWorld(canvas) {
 
-        canvas.strokeCSS(settings.world_border_color);
+        canvas.stroke(new Color(settings.world_border_color));
         canvas.line(this.pos.x, this.pos.y, this.pos.x, this.pos.y + this.height * CELL_SIZE);
         canvas.line(this.pos.x + this.width * CELL_SIZE, this.pos.y, this.pos.x + this.width * CELL_SIZE, this.pos.y + this.height * CELL_SIZE);
         canvas.line(this.pos.x, this.pos.y + this.height * CELL_SIZE, this.pos.x + this.width * CELL_SIZE, this.pos.y + this.height * CELL_SIZE);    
 
-        canvas.strokeCSS(settings.shape_border_color);
+        canvas.stroke(new Color(settings.shape_border_color));
         for (let relY = 0; relY < this.world.length; relY++) {
             const row = this.world[relY];
             for (let relX = 0; relX < row.length; relX++) {
@@ -719,7 +719,7 @@ class Game {
                     continue;
                 }
 
-                canvas.fillCSS(cellColor);
+                canvas.fill(new Color(cellColor));
                 canvas.rect(
                     this.pos.x + relX * CELL_SIZE, this.pos.y + relY * CELL_SIZE,
                     CELL_SIZE, CELL_SIZE
@@ -733,7 +733,7 @@ class Game {
      * @param {wCanvas} canvas - The canvas to draw the game's current tetromino on
      */
     drawCurrentTetromino(canvas) {
-        canvas.strokeCSS(settings.shape_border_color);
+        canvas.stroke(new Color(settings.shape_border_color));
         
         if (settings.show_tetromino_shadow) {
             this.currentTetromino.drawShadow(canvas);
@@ -750,7 +750,7 @@ class Game {
             return;
         }
 
-        canvas.strokeCSS(settings.shape_border_color);
+        canvas.stroke(new Color(settings.shape_border_color));
         const shape = this.heldTetromino.getCurrentShape();
         drawShape(
             canvas,
@@ -764,7 +764,7 @@ class Game {
      * @param {wCanvas} canvas - The canvas to draw the game's pool on
      */
     drawPool(canvas) {
-        canvas.strokeCSS(settings.shape_border_color);
+        canvas.stroke(new Color(settings.shape_border_color));
 
         const relX = this.width * CELL_SIZE + PADDING;
         let currentY = 0;
@@ -784,7 +784,7 @@ class Game {
      */
     drawScores(canvas) {
         const playAreaHeight = this.height * CELL_SIZE + PADDING;
-        canvas.fillCSS(settings.text_color);
+        canvas.fill(new Color(settings.text_color));
         canvas.text(formatString("Score: {0}", this.score), this.pos.x, this.pos.y + playAreaHeight + FONT.fontSize, { "noStroke": true });
         canvas.text(formatString("Highscore: {0}", this.highscore), this.pos.x, this.pos.y + playAreaHeight + PADDING + 2 * FONT.fontSize, { "noStroke": true });
     }
@@ -802,7 +802,7 @@ function injectDefaults(canvas) {
 
     canvas.textFont(FONT);
     canvas.strokeWeigth(1);
-    canvas.strokeCSS(settings.world_border_color);
+    canvas.stroke(new Color(settings.world_border_color));
     canvas.scale(currentScale);
 
     GAME.pos.x = (canvas.canvas.width / currentScale - GAME.width * CELL_SIZE) * GAME_HORIZONTAL_MARGIN;
@@ -940,7 +940,7 @@ function update() {
  * @param {Number} deltaTime
  */
 function draw(canvas, deltaTime) {
-    canvas.backgroundCSS(settings.background_color);
+    canvas.background(new Color(settings.background_color));
 
     if (GAME.paused) {
         GAME.drawScores(canvas);
