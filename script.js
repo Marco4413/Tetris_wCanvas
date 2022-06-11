@@ -354,7 +354,7 @@ class Tetromino {
      * @returns {Boolean} If it was able to change shape
      */
     previousShape() {
-        if (this.game.paused) { return false; }
+        if (this.game._paused) { return false; }
 
         const oldIndex = this.shapeIndex;
         if (--this.shapeIndex < 0) {
@@ -374,7 +374,7 @@ class Tetromino {
      * @returns {Boolean} If it was able to change shape
      */
     nextShape() {
-        if (this.game.paused) { return false; }
+        if (this.game._paused) { return false; }
 
         const oldIndex = this.shapeIndex;
         if (++this.shapeIndex >= this.shapes.length) {
@@ -403,7 +403,7 @@ class Tetromino {
      * @returns {Boolean} Whether or not it could move into the specified pos
      */
     moveX(ammount) {
-        if (this.game.paused) { return false; }
+        if (this.game._paused) { return false; }
 
         if (this.game.tetrominoFits(this, this.pos.x + ammount)) {
             this.pos.x += ammount;
@@ -419,7 +419,7 @@ class Tetromino {
      * @returns {Boolean} Whether or not it could move into the specified pos
      */
     moveY(ammount) {
-        if (this.game.paused) { return false; }
+        if (this.game._paused) { return false; }
 
         if (this.game.tetrominoFits(this, undefined, this.pos.y + ammount)) {
             this.pos.y += ammount;
@@ -469,6 +469,8 @@ class Game {
     constructor(pos, w, h) {
         this.highscore = 0;
         this.score = 0;
+        this.totalTime = 0;
+        this.resumeTime = Date.now();
         
         this.pos = pos;
         this.width = w;
@@ -476,9 +478,20 @@ class Game {
 
         this.tetrominoesPool = [];
 
-        this.paused = false;
+        this._paused = false;
 
         this.clearWorld();
+    }
+
+    togglePause() {
+        this._paused = !this._paused;
+        if (this._paused)
+            this.totalTime += Date.now() - this.resumeTime;
+        else this.resumeTime = Date.now();
+    }
+
+    isPaused() {
+        return this._paused;
     }
 
     /**
@@ -528,7 +541,7 @@ class Game {
      * @returns {Tetromino} The new current tetromino
      */
     nextTetromino() {
-        if (this.paused) { return; }
+        if (this._paused) { return; }
         
         this.canSwapHeld = true;
         this.currentTetromino = this.tetrominoesPool.shift();
@@ -540,7 +553,7 @@ class Game {
      * @param {Tetromino} tetromino - The tetromino to solidify
      */
     solidifyTetromino(tetromino) {
-        if (this.paused) { return; }
+        if (this._paused) { return; }
 
         const shape = tetromino.getCurrentShape();
         for (let relY = 0; relY < shape.length; relY++) {
@@ -616,7 +629,7 @@ class Game {
      * @returns {Boolean} Whether or not a Tetromino was held
      */
     holdTetromino() {
-        if (this.paused || !this.canSwapHeld) {
+        if (this._paused || !this.canSwapHeld) {
             return false;
         }
 
@@ -641,7 +654,7 @@ class Game {
      * @returns {Boolean} Whether or not the game was restarted
      */
     update() {
-        if (this.paused || this.currentTetromino === undefined) {
+        if (this._paused || this.currentTetromino === undefined) {
             return false;
         }
 
@@ -680,6 +693,8 @@ class Game {
                 this.heldTetromino = undefined;
                 this.canSwapHeld = true;
                 this.score = 0;
+                this.totalTime = 0;
+                this.resumeTime = Date.now();
                 return true;
             }
         }
@@ -697,6 +712,7 @@ class Game {
         this.drawHeldTetromino(canvas);
         this.drawPool(canvas);
         this.drawScores(canvas);
+        this.drawTime(canvas);
     }
 
     /**
@@ -787,6 +803,26 @@ class Game {
         canvas.fill(new Color(settings.text_color));
         canvas.text(formatString("Score: {0}", this.score), this.pos.x, this.pos.y + playAreaHeight + FONT.fontSize, { "noStroke": true });
         canvas.text(formatString("Highscore: {0}", this.highscore), this.pos.x, this.pos.y + playAreaHeight + PADDING + 2 * FONT.fontSize, { "noStroke": true });
+    }
+
+    /**
+     * Draws the game's time
+     * @param {wCanvas} canvas - The canvas to draw the game's time on
+     */
+    drawTime(canvas) {
+        const scoreAreaHeight = this.height * CELL_SIZE + PADDING + FONT.fontSize;
+        const playAreaWidth = this.width * CELL_SIZE;
+        canvas.fill(new Color(settings.text_color));
+
+        let elapsedTime = this.totalTime + (this._paused ? 0 : Date.now() - this.resumeTime);
+        canvas.text(formatString(
+            "Time: {0}s", (elapsedTime / 1e3).toFixed(2)
+        ), this.pos.x + playAreaWidth, this.pos.y + scoreAreaHeight + FONT.fontSize, {
+            "noStroke": true,
+            "alignment": {
+                "horizontal": "right"
+            }
+        });
     }
 }
 
@@ -942,8 +978,9 @@ function update() {
 function draw(canvas, deltaTime) {
     canvas.background(new Color(settings.background_color));
 
-    if (GAME.paused) {
+    if (GAME.isPaused()) {
         GAME.drawScores(canvas);
+        GAME.drawTime(canvas);
 
         const centerX = GAME.pos.x + GAME.width * CELL_SIZE / 2;
         const centerY = GAME.pos.y + GAME.height * CELL_SIZE / 2;
@@ -990,7 +1027,7 @@ window.addEventListener("keydown", (e) => {
             controller.classList.toggle("hidden");
         }
     } else if (KEY_BINDINGS.game_pause.includes(e.key)) {
-        GAME.paused = !GAME.paused;
+        GAME.togglePause();
     }
 });
 
